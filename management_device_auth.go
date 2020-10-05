@@ -3,7 +3,7 @@ package mender_rest_api_client
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
+	"path"
 	"time"
 
 	"github.com/go-resty/resty/v2"
@@ -67,7 +67,7 @@ func checkAndReturnError(r *resty.Response, e error) error {
 // TODO: implement page, per_pare queries
 func (c *RestClient) ListDevices() (ListDevices, error) {
 	var devices ListDevices = ListDevices{}
-	resp, err := c.client.R().Get(joinURL(deviceAuthBasePath, "/devices"))
+	resp, err := c.client.R().Get(path.Join(deviceAuthBasePath, "devices"))
 	if err = checkAndReturnError(resp, err); err != nil {
 		return devices, err
 	}
@@ -88,7 +88,7 @@ func (c *RestClient) Preauthorize() error {
 // Get a particular device.
 func (c *RestClient) GetDevice(deviceId string) (Device, error) {
 	var device Device = Device{}
-	resp, err := c.client.R().Get(joinURL(deviceAuthBasePath, "/devices/"+deviceId))
+	resp, err := c.client.R().Get(path.Join(deviceAuthBasePath, "devices", deviceId))
 	if err = checkAndReturnError(resp, err); err != nil {
 		return device, err
 	}
@@ -103,7 +103,7 @@ func (c *RestClient) GetDevice(deviceId string) (Device, error) {
 // Remove device and associated authentication set
 // TODO: test
 func (c *RestClient) DecomisionDevice(deviceId string) error {
-	resp, err := c.client.R().Delete(joinURL(deviceAuthBasePath, "/devices/"+deviceId))
+	resp, err := c.client.R().Delete(path.Join(deviceAuthBasePath, "devices", deviceId))
 	if err = checkAndReturnError(resp, err); err != nil {
 		return err
 	}
@@ -114,7 +114,7 @@ func (c *RestClient) DecomisionDevice(deviceId string) error {
 // Remove the device authentication set
 // TODO: test
 func (c *RestClient) RejectAuthtentication(deviceId, authId string) error {
-	resp, err := c.client.R().Delete(joinURL(deviceAuthBasePath, "/devices/"+deviceId+"/auth/"+authId))
+	resp, err := c.client.R().Delete(path.Join(deviceAuthBasePath, "devices", deviceId, "auth", authId))
 	if err = checkAndReturnError(resp, err); err != nil {
 		return err
 	}
@@ -125,7 +125,7 @@ func (c *RestClient) RejectAuthtentication(deviceId, authId string) error {
 // Update the device authentication set status
 // TODO: test
 func (c *RestClient) SetAuthtenticationStatus(deviceId, authId string) error {
-	resp, err := c.client.R().Put(joinURL(deviceAuthBasePath, "/devices/"+deviceId+"/"+authId+"/status"))
+	resp, err := c.client.R().Put(path.Join(deviceAuthBasePath, "devices", deviceId, authId, "status"))
 	if err = checkAndReturnError(resp, err); err != nil {
 		return err
 	}
@@ -141,7 +141,7 @@ func (c *RestClient) GetAuthtenticationStatus(deviceId, authId string) (string, 
 	}
 	var status AuthStatus = AuthStatus{}
 
-	resp, err := c.client.R().Get(joinURL(deviceAuthBasePath, "/devices/"+deviceId+"/"+authId+"/status"))
+	resp, err := c.client.R().Get(path.Join(deviceAuthBasePath, "devices", deviceId, authId, "status"))
 	if err = checkAndReturnError(resp, err); err != nil {
 		return status.Status, err
 	}
@@ -158,7 +158,7 @@ func (c *RestClient) GetAuthtenticationStatus(deviceId, authId string) (string, 
 func (c *RestClient) CountDevices() (int, error) {
 	var count DevicesCount = DevicesCount{}
 
-	resp, err := c.client.R().Get(joinURL(deviceAuthBasePath, "/devices/count"))
+	resp, err := c.client.R().Get(path.Join(deviceAuthBasePath, "devices/count"))
 	if err = checkAndReturnError(resp, err); err != nil {
 		return 0, err
 	}
@@ -185,7 +185,7 @@ func (c *RestClient) GetDeviceLimit() (int, error) {
 
 	var limit Limit
 
-	resp, err := c.client.R().Get(joinURL(deviceAuthBasePath, "/limits/max_devices"))
+	resp, err := c.client.R().Get(path.Join(deviceAuthBasePath, "limits/max_devices"))
 	if err = checkAndReturnError(resp, err); err != nil {
 		return 0, err
 	}
@@ -195,15 +195,4 @@ func (c *RestClient) GetDeviceLimit() (int, error) {
 	}
 
 	return limit.Limit, nil
-}
-
-//
-func joinURL(basePath, query string) string {
-	if strings.HasPrefix(query, "/") {
-		query = query[1:]
-	}
-	if !strings.HasSuffix(basePath, "/") {
-		basePath = basePath + "/"
-	}
-	return basePath + query
 }

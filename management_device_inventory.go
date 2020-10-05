@@ -3,6 +3,7 @@ package mender_rest_api_client
 import (
 	"encoding/json"
 	"fmt"
+	"path"
 	"time"
 )
 
@@ -42,7 +43,7 @@ type DeviceGroupData struct {
 // TODO: support for queries
 func (c *RestClient) ListDeviceInventories() (DeviceInventoryList, error) {
 	var devInventory DeviceInventoryList = DeviceInventoryList{}
-	resp, err := c.client.R().Get(joinURL(deviceInventoryBasePath, "/devices"))
+	resp, err := c.client.R().Get(path.Join(deviceInventoryBasePath, "devices"))
 	if err != nil {
 		return devInventory, err
 	}
@@ -58,7 +59,7 @@ func (c *RestClient) ListDeviceInventories() (DeviceInventoryList, error) {
 // TODO: test
 func (c *RestClient) GetDeviceInventory(deviceId string) (DeviceInventory, error) {
 	var devInventory DeviceInventory = DeviceInventory{}
-	resp, err := c.client.R().Get(joinURL(deviceInventoryBasePath, "/devices/"+deviceId))
+	resp, err := c.client.R().Get(path.Join(deviceInventoryBasePath, "devices", deviceId))
 	if err != nil {
 		return devInventory, err
 	}
@@ -73,7 +74,7 @@ func (c *RestClient) GetDeviceInventory(deviceId string) (DeviceInventory, error
 //Remove selected device's inventory
 // TODO: test
 func (c *RestClient) DeleteDeviceInventory(deviceId string) error {
-	_, err := c.client.R().Delete(joinURL(deviceInventoryBasePath, "/devices/"+deviceId))
+	_, err := c.client.R().Delete(path.Join(deviceInventoryBasePath, "devices", deviceId))
 	if err != nil {
 		return err
 	}
@@ -85,7 +86,7 @@ func (c *RestClient) DeleteDeviceInventory(deviceId string) error {
 // TODO: test
 func (c *RestClient) GetDeviceGroup(deviceId string) (DeviceGroupData, error) {
 	var group DeviceGroupData = DeviceGroupData{}
-	resp, err := c.client.R().Get(joinURL(deviceInventoryBasePath, "/devices/"+deviceId+"/group"))
+	resp, err := c.client.R().Get(path.Join(deviceInventoryBasePath, "devices", deviceId, "group"))
 	if err != nil {
 		return group, err
 	}
@@ -109,7 +110,7 @@ func (c *RestClient) AssignGroup(deviceId, groupName string) error {
 		return fmt.Errorf("Failed to marshall group %v", e)
 	}
 
-	_, err := c.client.R().SetBody(g).Put(joinURL(deviceInventoryBasePath, "/devices/"+deviceId+"/group"))
+	_, err := c.client.R().SetBody(g).Put(path.Join(deviceInventoryBasePath, "devices", deviceId, "group"))
 	if err != nil {
 		return err
 	}
@@ -120,7 +121,7 @@ func (c *RestClient) AssignGroup(deviceId, groupName string) error {
 // Remove a device from a group
 // TODO: test
 func (c *RestClient) ClearGroup(deviceId, groupName string) error {
-	_, err := c.client.R().Delete(joinURL(deviceInventoryBasePath, "/devices/"+deviceId+"/group/"+groupName))
+	_, err := c.client.R().Delete(path.Join(deviceInventoryBasePath, "devices", deviceId, "group", groupName))
 	if err != nil {
 		return err
 	}
@@ -132,7 +133,7 @@ func (c *RestClient) ClearGroup(deviceId, groupName string) error {
 // TODO: test
 func (c *RestClient) ListGroups() ([]string, error) {
 	var listGroups []string = []string{}
-	resp, err := c.client.R().Get(joinURL(deviceInventoryBasePath, "/groups"))
+	resp, err := c.client.R().Get(path.Join(deviceInventoryBasePath, "groups"))
 	if err != nil {
 		return listGroups, err
 	}
@@ -148,7 +149,7 @@ func (c *RestClient) ListGroups() ([]string, error) {
 // TODO: test
 func (c *RestClient) GetDevicesInGroup(groupName string) ([]string, error) {
 	var listDevicesInGroup []string = []string{}
-	resp, err := c.client.R().Get(joinURL(deviceInventoryBasePath, "/groups/"+groupName+"/devices"))
+	resp, err := c.client.R().Get(path.Join(deviceInventoryBasePath, "groups", groupName, "devices"))
 	if err != nil {
 		return listDevicesInGroup, err
 	}
@@ -169,7 +170,7 @@ func (c *RestClient) AddDevicesToGroup(groupName string, devices []string) error
 		return fmt.Errorf("Failed to marshall group %v", e)
 	}
 
-	_, err := c.client.R().SetBody(d).Patch(joinURL(deviceInventoryBasePath, "/groups/"+groupName+"/devices"))
+	_, err := c.client.R().SetBody(d).Patch(path.Join(deviceInventoryBasePath, "groups", groupName, "devices"))
 	if err != nil {
 		return err
 	}
@@ -186,7 +187,7 @@ func (c *RestClient) RemoveDevicesFromGroup(groupName string, devices []string) 
 		return fmt.Errorf("Failed to marshall group %v", e)
 	}
 
-	_, err := c.client.R().SetBody(d).Delete(joinURL(deviceInventoryBasePath, "/groups/"+groupName+"/devices"))
+	_, err := c.client.R().SetBody(d).Delete(path.Join(deviceInventoryBasePath, "groups", groupName, "devices"))
 	if err != nil {
 		return err
 	}
