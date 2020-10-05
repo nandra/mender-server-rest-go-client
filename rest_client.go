@@ -6,7 +6,7 @@ import (
 	"github.com/go-resty/resty/v2"
 )
 
-type RestClient struct {
+type Client struct {
 	jwtToken      string
 	username      string
 	password      string
@@ -15,8 +15,8 @@ type RestClient struct {
 	client        *resty.Client
 }
 
-func NewRestClient(url, user, pass string, skipVerify bool) *RestClient {
-	return &RestClient{serverUrl: url, username: user, password: pass, tlsSkipVerify: skipVerify, client: resty.New()}
+func NewClient(url, user, pass string, skipVerify bool) *Client {
+	return &Client{serverUrl: url, username: user, password: pass, tlsSkipVerify: skipVerify, client: resty.New()}
 }
 
 //
@@ -24,7 +24,7 @@ func NewRestClient(url, user, pass string, skipVerify bool) *RestClient {
 // debug - enable rest debugging
 // skipTlsVerify - disable ssl verification
 
-func (c *RestClient) Login(debug, skipTlsVerify bool) error {
+func (c *Client) Login(debug, skipTlsVerify bool) error {
 
 	client := resty.New()
 

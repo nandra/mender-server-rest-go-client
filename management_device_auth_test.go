@@ -11,11 +11,11 @@ import (
 
 const serverUrl = "https://test_mender.com"
 
-func restartHttpMock(action, path, jsonResponse string, response int) *RestClient {
+func restartHttpMock(action, path, jsonResponse string, response int) *Client {
 	httpmock.DeactivateAndReset()
 	httpmock.Activate()
 
-	c := NewRestClient(serverUrl, "", "", true)
+	c := NewClient(serverUrl, "", "", true)
 
 	httpmock.ActivateNonDefault(c.client.GetClient())
 

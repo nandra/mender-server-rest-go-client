@@ -41,7 +41,7 @@ type DeviceGroupData struct {
 
 // List devices inventories
 // TODO: support for queries
-func (c *RestClient) ListDeviceInventories() (DeviceInventoryList, error) {
+func (c *Client) ListDeviceInventories() (DeviceInventoryList, error) {
 	var devInventory DeviceInventoryList = DeviceInventoryList{}
 	resp, err := c.client.R().Get(path.Join(deviceInventoryBasePath, "devices"))
 	if err != nil {
@@ -57,7 +57,7 @@ func (c *RestClient) ListDeviceInventories() (DeviceInventoryList, error) {
 
 // Get a selected device's inventory
 // TODO: test
-func (c *RestClient) GetDeviceInventory(deviceId string) (DeviceInventory, error) {
+func (c *Client) GetDeviceInventory(deviceId string) (DeviceInventory, error) {
 	var devInventory DeviceInventory = DeviceInventory{}
 	resp, err := c.client.R().Get(path.Join(deviceInventoryBasePath, "devices", deviceId))
 	if err != nil {
@@ -73,7 +73,7 @@ func (c *RestClient) GetDeviceInventory(deviceId string) (DeviceInventory, error
 
 //Remove selected device's inventory
 // TODO: test
-func (c *RestClient) DeleteDeviceInventory(deviceId string) error {
+func (c *Client) DeleteDeviceInventory(deviceId string) error {
 	_, err := c.client.R().Delete(path.Join(deviceInventoryBasePath, "devices", deviceId))
 	if err != nil {
 		return err
@@ -84,7 +84,7 @@ func (c *RestClient) DeleteDeviceInventory(deviceId string) error {
 
 // Get a selected device's group
 // TODO: test
-func (c *RestClient) GetDeviceGroup(deviceId string) (DeviceGroupData, error) {
+func (c *Client) GetDeviceGroup(deviceId string) (DeviceGroupData, error) {
 	var group DeviceGroupData = DeviceGroupData{}
 	resp, err := c.client.R().Get(path.Join(deviceInventoryBasePath, "devices", deviceId, "group"))
 	if err != nil {
@@ -100,7 +100,7 @@ func (c *RestClient) GetDeviceGroup(deviceId string) (DeviceGroupData, error) {
 
 // Add a device to a group
 // TODO: test
-func (c *RestClient) AssignGroup(deviceId, groupName string) error {
+func (c *Client) AssignGroup(deviceId, groupName string) error {
 	group := DeviceGroupData{
 		Group: groupName,
 	}
@@ -120,7 +120,7 @@ func (c *RestClient) AssignGroup(deviceId, groupName string) error {
 
 // Remove a device from a group
 // TODO: test
-func (c *RestClient) ClearGroup(deviceId, groupName string) error {
+func (c *Client) ClearGroup(deviceId, groupName string) error {
 	_, err := c.client.R().Delete(path.Join(deviceInventoryBasePath, "devices", deviceId, "group", groupName))
 	if err != nil {
 		return err
@@ -131,7 +131,7 @@ func (c *RestClient) ClearGroup(deviceId, groupName string) error {
 
 // List all groups existing device groups
 // TODO: test
-func (c *RestClient) ListGroups() ([]string, error) {
+func (c *Client) ListGroups() ([]string, error) {
 	var listGroups []string = []string{}
 	resp, err := c.client.R().Get(path.Join(deviceInventoryBasePath, "groups"))
 	if err != nil {
@@ -147,7 +147,7 @@ func (c *RestClient) ListGroups() ([]string, error) {
 
 // List the devices belonging to a given group
 // TODO: test
-func (c *RestClient) GetDevicesInGroup(groupName string) ([]string, error) {
+func (c *Client) GetDevicesInGroup(groupName string) ([]string, error) {
 	var listDevicesInGroup []string = []string{}
 	resp, err := c.client.R().Get(path.Join(deviceInventoryBasePath, "groups", groupName, "devices"))
 	if err != nil {
@@ -163,7 +163,7 @@ func (c *RestClient) GetDevicesInGroup(groupName string) ([]string, error) {
 
 // Add devices to group
 // TODO: test
-func (c *RestClient) AddDevicesToGroup(groupName string, devices []string) error {
+func (c *Client) AddDevicesToGroup(groupName string, devices []string) error {
 
 	d, e := json.Marshal(devices)
 	if e != nil {
@@ -180,7 +180,7 @@ func (c *RestClient) AddDevicesToGroup(groupName string, devices []string) error
 
 // Clear devices' group
 // TODO: test
-func (c *RestClient) RemoveDevicesFromGroup(groupName string, devices []string) error {
+func (c *Client) RemoveDevicesFromGroup(groupName string, devices []string) error {
 
 	d, e := json.Marshal(devices)
 	if e != nil {

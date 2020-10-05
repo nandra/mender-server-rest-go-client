@@ -65,7 +65,7 @@ func checkAndReturnError(r *resty.Response, e error) error {
 
 // List devices sorted by age and optionally filter on device status
 // TODO: implement page, per_pare queries
-func (c *RestClient) ListDevices() (ListDevices, error) {
+func (c *Client) ListDevices() (ListDevices, error) {
 	var devices ListDevices = ListDevices{}
 	resp, err := c.client.R().Get(path.Join(deviceAuthBasePath, "devices"))
 	if err = checkAndReturnError(resp, err); err != nil {
@@ -81,12 +81,12 @@ func (c *RestClient) ListDevices() (ListDevices, error) {
 
 // Submit a preauthorized device.
 // TODO: implement
-func (c *RestClient) Preauthorize() error {
+func (c *Client) Preauthorize() error {
 	return fmt.Errorf("Not implmplemented")
 }
 
 // Get a particular device.
-func (c *RestClient) GetDevice(deviceId string) (Device, error) {
+func (c *Client) GetDevice(deviceId string) (Device, error) {
 	var device Device = Device{}
 	resp, err := c.client.R().Get(path.Join(deviceAuthBasePath, "devices", deviceId))
 	if err = checkAndReturnError(resp, err); err != nil {
@@ -102,7 +102,7 @@ func (c *RestClient) GetDevice(deviceId string) (Device, error) {
 
 // Remove device and associated authentication set
 // TODO: test
-func (c *RestClient) DecomisionDevice(deviceId string) error {
+func (c *Client) DecomisionDevice(deviceId string) error {
 	resp, err := c.client.R().Delete(path.Join(deviceAuthBasePath, "devices", deviceId))
 	if err = checkAndReturnError(resp, err); err != nil {
 		return err
@@ -113,7 +113,7 @@ func (c *RestClient) DecomisionDevice(deviceId string) error {
 
 // Remove the device authentication set
 // TODO: test
-func (c *RestClient) RejectAuthtentication(deviceId, authId string) error {
+func (c *Client) RejectAuthtentication(deviceId, authId string) error {
 	resp, err := c.client.R().Delete(path.Join(deviceAuthBasePath, "devices", deviceId, "auth", authId))
 	if err = checkAndReturnError(resp, err); err != nil {
 		return err
@@ -124,7 +124,7 @@ func (c *RestClient) RejectAuthtentication(deviceId, authId string) error {
 
 // Update the device authentication set status
 // TODO: test
-func (c *RestClient) SetAuthtenticationStatus(deviceId, authId string) error {
+func (c *Client) SetAuthtenticationStatus(deviceId, authId string) error {
 	resp, err := c.client.R().Put(path.Join(deviceAuthBasePath, "devices", deviceId, authId, "status"))
 	if err = checkAndReturnError(resp, err); err != nil {
 		return err
@@ -135,7 +135,7 @@ func (c *RestClient) SetAuthtenticationStatus(deviceId, authId string) error {
 
 // Get the device authentication set status
 // TODO: test
-func (c *RestClient) GetAuthtenticationStatus(deviceId, authId string) (string, error) {
+func (c *Client) GetAuthtenticationStatus(deviceId, authId string) (string, error) {
 	type AuthStatus struct {
 		Status string `json:"status"`
 	}
@@ -155,7 +155,7 @@ func (c *RestClient) GetAuthtenticationStatus(deviceId, authId string) (string, 
 
 // Count number of devices, optionally filtered by status.
 // TODO: added support for queries
-func (c *RestClient) CountDevices() (int, error) {
+func (c *Client) CountDevices() (int, error) {
 	var count DevicesCount = DevicesCount{}
 
 	resp, err := c.client.R().Get(path.Join(deviceAuthBasePath, "devices/count"))
@@ -172,13 +172,13 @@ func (c *RestClient) CountDevices() (int, error) {
 
 // Revoke JWT with given id
 // TODO: implement
-func (c *RestClient) RewokeAPIToken() error {
+func (c *Client) RewokeAPIToken() error {
 	return fmt.Errorf("Not implmplemented")
 }
 
 // Obtain limit of accepted devices.
 // TODO: test
-func (c *RestClient) GetDeviceLimit() (int, error) {
+func (c *Client) GetDeviceLimit() (int, error) {
 	type Limit struct {
 		Limit int `json:"limit"`
 	}
