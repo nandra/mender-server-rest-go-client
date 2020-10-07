@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 	"strconv"
 	"time"
 )
@@ -121,9 +122,9 @@ type StorageUsage struct {
 
 // Find all deployments
 // TODO: add support for queries
-func (c *RestClient) ListDeployments() (ListDeployments, error) {
+func (c *Client) ListDeployments() (ListDeployments, error) {
 	var list ListDeployments = ListDeployments{}
-	resp, err := c.client.R().Get(joinURL(deviceDeploymentsBasePath, "/deployments"))
+	resp, err := c.client.R().Get(path.Join(deviceDeploymentsBasePath, "deployments"))
 	if err != nil {
 		return list, err
 	}
@@ -135,7 +136,7 @@ func (c *RestClient) ListDeployments() (ListDeployments, error) {
 }
 
 // Create a deployment
-func (c *RestClient) CreateDeployment(deploymentName, artifactName string, devices []string, retries int) error {
+func (c *Client) CreateDeployment(deploymentName, artifactName string, devices []string, retries int) error {
 
 	type Deployment struct {
 		Name         string   `json:"name"`
@@ -157,7 +158,7 @@ func (c *RestClient) CreateDeployment(deploymentName, artifactName string, devic
 		return err
 	}
 
-	_, err = c.client.R().SetBody(d).Post(joinURL(deviceDeploymentsBasePath, "/deployments"))
+	_, err = c.client.R().SetBody(d).Post(path.Join(deviceDeploymentsBasePath, "deployments"))
 	if err != nil {
 		return err
 	}
@@ -166,7 +167,7 @@ func (c *RestClient) CreateDeployment(deploymentName, artifactName string, devic
 }
 
 // Create a deployment for a group of devices
-func (c *RestClient) CreateDeploymentForGroup(deploymentName, artifactName, groupName string) error {
+func (c *Client) CreateDeploymentForGroup(deploymentName, artifactName, groupName string) error {
 
 	deployment := GroupDeployment{
 		Name:         deploymentName,
@@ -179,7 +180,7 @@ func (c *RestClient) CreateDeploymentForGroup(deploymentName, artifactName, grou
 		return err
 	}
 
-	_, err = c.client.R().SetBody(d).Post(joinURL(deviceDeploymentsBasePath, "/deployments/group/"+groupName))
+	_, err = c.client.R().SetBody(d).Post(path.Join(deviceDeploymentsBasePath, "deployments/group", groupName))
 	if err != nil {
 		return err
 	}
@@ -188,10 +189,10 @@ func (c *RestClient) CreateDeploymentForGroup(deploymentName, artifactName, grou
 }
 
 // Get the details of a selected deployment
-func (c *RestClient) ShowDeployment(deploymentId string) (DeploymentStatus, error) {
+func (c *Client) ShowDeployment(deploymentId string) (DeploymentStatus, error) {
 	var stat DeploymentStatus = DeploymentStatus{}
 
-	resp, err := c.client.R().Get(joinURL(deviceDeploymentsBasePath, "/deployments/"+deploymentId))
+	resp, err := c.client.R().Get(path.Join(deviceDeploymentsBasePath, "deployments", deploymentId))
 	if err != nil {
 		fmt.Println("failed to read list of devices", err)
 	}
@@ -204,7 +205,7 @@ func (c *RestClient) ShowDeployment(deploymentId string) (DeploymentStatus, erro
 }
 
 // Abort the deployment
-func (c *RestClient) AbortDeployment(deploymentId string) error {
+func (c *Client) AbortDeployment(deploymentId string) error {
 	type AbortDeploymentBody struct {
 		Status string `json:"status"`
 	}
@@ -217,7 +218,7 @@ func (c *RestClient) AbortDeployment(deploymentId string) error {
 		return err
 	}
 
-	_, err = c.client.R().SetBody(a).Put(joinURL(deviceDeploymentsBasePath, "/deployments/"+deploymentId+"/status"))
+	_, err = c.client.R().SetBody(a).Put(path.Join(deviceDeploymentsBasePath, "deployments", deploymentId, "status"))
 	if err != nil {
 		return err
 	}
@@ -226,9 +227,9 @@ func (c *RestClient) AbortDeployment(deploymentId string) error {
 }
 
 // Get status count for all devices in a deployment.
-func (c *RestClient) DeploymentStatistics(deploymentId string) (DeploymentStatistics, error) {
+func (c *Client) DeploymentStatistics(deploymentId string) (DeploymentStatistics, error) {
 	var stat DeploymentStatistics = DeploymentStatistics{}
-	resp, err := c.client.R().Get(joinURL(deviceDeploymentsBasePath, "/deployments/"+deploymentId+"/statistics"))
+	resp, err := c.client.R().Get(path.Join(deviceDeploymentsBasePath, "deployments", deploymentId, "statistics"))
 	if err != nil {
 		return stat, err
 	}
@@ -240,9 +241,9 @@ func (c *RestClient) DeploymentStatistics(deploymentId string) (DeploymentStatis
 }
 
 // Get list of all devices and their respective status for the deployment with the given ID.
-func (c *RestClient) ListDevicesInDeployment(deploymentId string) (DeploymentStatusList, error) {
+func (c *Client) ListDevicesInDeployment(deploymentId string) (DeploymentStatusList, error) {
 	var list DeploymentStatusList = DeploymentStatusList{}
-	resp, err := c.client.R().Get(joinURL(deviceDeploymentsBasePath, "/deployments/"+deploymentId+"/devices"))
+	resp, err := c.client.R().Get(path.Join(deviceDeploymentsBasePath, "deployments", deploymentId, "devices"))
 	if err != nil {
 		return list, err
 	}
@@ -255,9 +256,9 @@ func (c *RestClient) ListDevicesInDeployment(deploymentId string) (DeploymentSta
 }
 
 // Get the list of device IDs being part of the deployment.
-func (c *RestClient) ListDevicesIDsInDeployment(deploymentId string) ([]string, error) {
+func (c *Client) ListDevicesIDsInDeployment(deploymentId string) ([]string, error) {
 	var list []string = []string{}
-	resp, err := c.client.R().Get(joinURL(deviceDeploymentsBasePath, "/deployments/"+deploymentId+"/device_list"))
+	resp, err := c.client.R().Get(path.Join(deviceDeploymentsBasePath, "deployments", deploymentId, "device_list"))
 	if err != nil {
 		return list, err
 	}
@@ -270,8 +271,8 @@ func (c *RestClient) ListDevicesIDsInDeployment(deploymentId string) ([]string, 
 
 // Get the log of a selected device's deployment
 // TODO: test
-func (c *RestClient) GetDeploymentLogForDevice(deploymentId, deviceId string) (string, error) {
-	resp, err := c.client.R().Get(joinURL(deviceDeploymentsBasePath, "/deployments/"+deploymentId+"/devices/"+deviceId+"/log"))
+func (c *Client) GetDeploymentLogForDevice(deploymentId, deviceId string) (string, error) {
+	resp, err := c.client.R().Get(path.Join(deviceDeploymentsBasePath, "deployments", deploymentId, "devices", deviceId, "log"))
 	if err != nil {
 		return "", err
 	}
@@ -280,8 +281,8 @@ func (c *RestClient) GetDeploymentLogForDevice(deploymentId, deviceId string) (s
 }
 
 // Remove device from all deployments
-func (c *RestClient) RemoveDeviceFromDeployment(deviceId string) error {
-	_, err := c.client.R().Delete(joinURL(deviceDeploymentsBasePath, "/deployments/devices/"+deviceId))
+func (c *Client) RemoveDeviceFromDeployment(deviceId string) error {
+	_, err := c.client.R().Delete(path.Join(deviceDeploymentsBasePath, "deployments/devices", deviceId))
 	if err != nil {
 		return err
 	}
@@ -290,9 +291,9 @@ func (c *RestClient) RemoveDeviceFromDeployment(deviceId string) error {
 }
 
 // List releases
-func (c *RestClient) ListReleases() (ListReleases, error) {
+func (c *Client) ListReleases() (ListReleases, error) {
 	var releases ListReleases = ListReleases{}
-	resp, err := c.client.R().Get(joinURL(deviceDeploymentsBasePath, "/deployments/releases"))
+	resp, err := c.client.R().Get(path.Join(deviceDeploymentsBasePath, "deployments/releases"))
 	if err != nil {
 		return releases, err
 	}
@@ -305,9 +306,9 @@ func (c *RestClient) ListReleases() (ListReleases, error) {
 }
 
 // List known artifacts
-func (c *RestClient) ListArtifacts() (ListReleases, error) {
+func (c *Client) ListArtifacts() (ListReleases, error) {
 	var releases ListReleases = ListReleases{}
-	resp, err := c.client.R().Get(joinURL(deviceDeploymentsBasePath, "/artifacts"))
+	resp, err := c.client.R().Get(path.Join(deviceDeploymentsBasePath, "artifacts"))
 	if err != nil {
 		return releases, err
 	}
@@ -320,7 +321,7 @@ func (c *RestClient) ListArtifacts() (ListReleases, error) {
 }
 
 // Upload mender artifact
-func (c *RestClient) UploadArtifacts(artifactFilePath, artifactDescription string) error {
+func (c *Client) UploadArtifacts(artifactFilePath, artifactDescription string) error {
 
 	artifact, err := ioutil.ReadFile(artifactFilePath)
 	if err != nil {
@@ -340,7 +341,7 @@ func (c *RestClient) UploadArtifacts(artifactFilePath, artifactDescription strin
 			"description": artifactDescription,
 		}).
 		SetFileReader("artifact", fi.Name(), bytes.NewReader(artifact)).
-		Post(joinURL(deviceDeploymentsBasePath, "/artifacts"))
+		Post(path.Join(deviceDeploymentsBasePath, "artifacts"))
 	if err != nil {
 		return err
 	}
@@ -349,14 +350,14 @@ func (c *RestClient) UploadArtifacts(artifactFilePath, artifactDescription strin
 }
 
 // TODO: implement
-func (c *RestClient) GenerateArtifact() error {
+func (c *Client) GenerateArtifact() error {
 	return fmt.Errorf("Not implmplemented")
 }
 
 // Get the details of a selected artifact
-func (c *RestClient) ShowArtifact(artifactId string) (ArtifactInfo, error) {
+func (c *Client) ShowArtifact(artifactId string) (ArtifactInfo, error) {
 	var artifact ArtifactInfo = ArtifactInfo{}
-	resp, err := c.client.R().Get(joinURL(deviceDeploymentsBasePath, "/artifacts/"+artifactId))
+	resp, err := c.client.R().Get(path.Join(deviceDeploymentsBasePath, "artifacts", artifactId))
 	if err != nil {
 		return artifact, err
 	}
@@ -369,7 +370,7 @@ func (c *RestClient) ShowArtifact(artifactId string) (ArtifactInfo, error) {
 }
 
 // Update description of a selected artifact
-func (c *RestClient) UpdateArtifactinfo(artifactId, description string) error {
+func (c *Client) UpdateArtifactinfo(artifactId, description string) error {
 	type ArtifactDescription struct {
 		Description string `json:"description"`
 	}
@@ -382,7 +383,7 @@ func (c *RestClient) UpdateArtifactinfo(artifactId, description string) error {
 		return err
 	}
 
-	_, err = c.client.R().SetBody(d).Put(joinURL(deviceDeploymentsBasePath, "/artifacts/"+artifactId))
+	_, err = c.client.R().SetBody(d).Put(path.Join(deviceDeploymentsBasePath, "artifacts", artifactId))
 	if err != nil {
 		return err
 	}
@@ -391,8 +392,8 @@ func (c *RestClient) UpdateArtifactinfo(artifactId, description string) error {
 }
 
 // Delete the artifact
-func (c *RestClient) DeleteArtifact(artifactId string) error {
-	_, err := c.client.R().Delete(joinURL(deviceDeploymentsBasePath, "/artifacts/"+artifactId))
+func (c *Client) DeleteArtifact(artifactId string) error {
+	_, err := c.client.R().Delete(path.Join(deviceDeploymentsBasePath, "artifacts", artifactId))
 	if err != nil {
 		return err
 	}
@@ -401,7 +402,7 @@ func (c *RestClient) DeleteArtifact(artifactId string) error {
 }
 
 // Get the download link of a selected artifact
-func (c *RestClient) DownloadArtifact(artifactId string) (string, error) {
+func (c *Client) DownloadArtifact(artifactId string) (string, error) {
 	type ArtifactResult struct {
 		URI    string    `json:"uri"`
 		Expire time.Time `json:"expire"`
@@ -409,7 +410,7 @@ func (c *RestClient) DownloadArtifact(artifactId string) (string, error) {
 
 	var result ArtifactResult = ArtifactResult{}
 
-	resp, err := c.client.R().Get(joinURL(deviceDeploymentsBasePath, "/artifacts/"+artifactId+"/download"))
+	resp, err := c.client.R().Get(path.Join(deviceDeploymentsBasePath, "artifacts", artifactId, "download"))
 	if err != nil {
 		return "", err
 	}
@@ -422,9 +423,9 @@ func (c *RestClient) DownloadArtifact(artifactId string) (string, error) {
 }
 
 // Get storage limit and current storage usage
-func (c *RestClient) GetStorageUsage() (StorageUsage, error) {
+func (c *Client) GetStorageUsage() (StorageUsage, error) {
 	var usage StorageUsage = StorageUsage{}
-	resp, err := c.client.R().Get(joinURL(deviceDeploymentsBasePath, "/limits/storage"))
+	resp, err := c.client.R().Get(path.Join(deviceDeploymentsBasePath, "limits/storage"))
 	if err != nil {
 		return usage, err
 	}
