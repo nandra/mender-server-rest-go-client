@@ -1,7 +1,9 @@
-package mender_rest_api_client
+package menderrc
 
 import (
-	"io/ioutil"
+	"context"
+	"fmt"
+	"io"
 	"net/http"
 )
 
@@ -14,72 +16,36 @@ type Client struct {
 	httpClient *http.Client
 }
 
-type ClientOpt func(*Client)
+// NewClient creates client to Mender Rest API.
+func NewClient() *Client {
+	return NewCustomClient(BaseApiUrl, http.DefaultClient)
+}
 
-// SetHttpClient allows set custom http client
-func SetHttpClient(httpClient *http.Client) ClientOpt {
-	return func(c *Client) {
-		if httpClient {
-			panic("http client cannot be nil")
-		}
-		c.httpClient = httpClient
+// NewCustomClient
+func NewCustomClient(baseApiUrl string, httpClient *http.Client) *Client {
+	return &Client{
+		baseApiUrl: baseApiUrl,
+		httpClient: httpClient,
 	}
 }
 
-// SetBaseApiUrl allows
-func SetBaseApiUrl(baseApiUrl string) ClientOpt {
-	return func(c *Client) {
-		c.baseApiUrl = baseApiUrl
+func (c *Client) newAuthorizedRequest(ctx context.Context, method, url string, body io.Reader) (*http.Request, error) {
+
+	if len(c.jwtToken) == 0 {
+		return nil, fmt.Errorf("unauthorized")
 	}
+
+	req, err := http.NewRequestWithContext(ctx, method, url, body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Accept", "application/json")
+	req.Header.Add("Authorization", "Bearer "+c.jwtToken)
+
+	return req, nil
 }
 
-// NewClient creates client to Mender Rest API. User might use custom http client, if nil is passed
-// default http client will be used.
-func NewClient(opts ...ClientOpt) *Client {
-
-	// use default http client if none is set
-	client := &Client{
-		baseApiUrl: BaseApiUrl,
-		httpClient: http.DefaultClient,
-	}
-
-	// user configurable overrides
-	for _, opt := range opts {
-		opt(client)
-	}
-
-	return client
-}
-
-// Login logins to mender server using username and password
-func (c *Client) Login(username, password string) error {
-
-	headers := map[string][]string{
-		"Content-Type": []string{"application/json"},
-		"Accept":       []string{"application/jwt"},
-	}
-
-	req, err := http.NewRequest("POST", c.baseApiUrl+"/api/management/v1/useradm/auth/login", nil)
-	if err != nil {
-		return err
-	}
-
-	req.Header = headers
-	req.SetBasicAuth(username, password)
-
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-
-	// save token for later use
-	c.jwtToken = string(body)
-
-	return nil
+func (c *Client) p(scope string, format string, args ...interface{}) string {
+	return c.baseApiUrl + scope + fmt.Sprintf(format, args...)
 }
